@@ -1,0 +1,25 @@
+diff -u -r1.4 -r1.5
+--- src/winsup/mingw/tlssup.c	2011/08/23 22:27:35	1.4
++++ src/winsup/mingw/tlssup.c	2011/11/30 23:49:46	1.5
+@@ -84,6 +84,7 @@
+ __dyn_tls_init (HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved)
+ {
+   _PVFV *pfunc;
++  int nfuncs, ifunc;
+ 
+   /* We don't let us trick here.  */
+   if (_CRT_MT != 2)
+@@ -96,8 +97,12 @@
+       return TRUE;
+     }
+ 
+-  for (pfunc = &__xd_a + 1; pfunc != &__xd_z; ++pfunc)
++  /* Use the nfuncs variable to iterate the TLS functions instead of pfunc to
++     avoid nasty compiler optimizations when comparing two global pointers. */
++  nfuncs = &__xd_z - (&__xd_a + 1);
++  for (ifunc=0; ifunc < nfuncs; ++ifunc)
+     {
++      pfunc = (&__xd_a + 1) + ifunc;
+       if (*pfunc != NULL)
+         (*pfunc)();
+     }
